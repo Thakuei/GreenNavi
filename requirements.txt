@@ -1,0 +1,4 @@
+streamlit
+black
+isort
+python-dotenv
