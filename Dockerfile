@@ -10,4 +10,4 @@ COPY app/ ./app/
 
 EXPOSE 8080
 
-CMD ["streamlit", "run", "app/main.py"]
+CMD ["streamlit", "run", "app/main.py", "--server.port", "8080"]
