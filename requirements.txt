@@ -2,3 +2,4 @@ streamlit
 black
 isort
 python-dotenv
+pandas
