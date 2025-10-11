@@ -1,5 +1,12 @@
 import pandas as pd
+from pathlib import Path
 import streamlit as st
+
+ICON_PATH = Path(__file__).parent / "images" / "GreenNavi.png"
+if ICON_PATH.exists():
+    st.set_page_config(page_title="GreenNavi", page_icon=str(ICON_PATH))
+else:
+    st.set_page_config(page_title="GreenNavi", page_icon=":seedling:")
 
 st.title("GreenNavi")
 
