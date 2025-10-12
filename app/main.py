@@ -58,6 +58,13 @@ if uploaded_file is not None:
         if result_df is not None:
             st.subheader("シミュレーション結果")
             st.dataframe(result_df)
+            st.table(
+              {
+                "総コスト (円)": [result_df["cost"].sum() * -1],
+                "総買電量 (kWh)": [result_df["buy_electricity"].sum()],
+                "総売電量 (kWh)": [result_df["sell_electricity"].sum()],
+              }
+            )
     else:
         st.info(
             "設定を確認したらサイドバーの「シミュレーションを実行」を押してください"
