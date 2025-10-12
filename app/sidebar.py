@@ -45,6 +45,10 @@ def render_sidebar():
         "消費月", options=months, default=[1, 2, 3, 12]
     )
 
+    run_simulation_clicked = st.sidebar.button(
+        "シミュレーションを実行", type="primary", width="stretch"
+    )
+
     return {
         "uploaded_file": uploaded_file,
         "max_battery_capacity": max_battery_capacity,
@@ -58,4 +62,5 @@ def render_sidebar():
         "fc_efficiency": fc_efficiency,
         "production_month": production_month,
         "consumption_month": consumption_month,
+        "run_simulation_clicked": run_simulation_clicked,
     }
