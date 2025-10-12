@@ -1,8 +1,8 @@
 from pathlib import Path
-from sidebar import render_sidebar
 
 import pandas as pd
 import streamlit as st
+from sidebar import render_sidebar
 
 ICON_PATH = Path(__file__).parent / "images" / "GreenNavi.png"
 if ICON_PATH.exists():
