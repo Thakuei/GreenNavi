@@ -45,7 +45,7 @@ def render_sidebar():
         "消費月", options=months, default=[1, 2, 3, 12]
     )
 
-    run_simulation_clicked = st.sidebar.button("シミュレーションを実行")
+    run_simulation_clicked = st.sidebar.button("シミュレーションを実行", type="primary", width="stretch")
 
     return {
         "uploaded_file": uploaded_file,
