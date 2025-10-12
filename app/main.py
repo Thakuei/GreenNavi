@@ -23,7 +23,7 @@ if uploaded_file is not None:
     st.write("ファイル名:", uploaded_file.name)
 
     st.subheader("現在の設定値")
-    st.write(
+    st.table(
         {
             "max_battery_capacity": settings["max_battery_capacity"],
             "buy_price": settings["buy_price"],
