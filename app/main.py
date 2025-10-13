@@ -1,9 +1,14 @@
 from pathlib import Path
+import sys
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 import pandas as pd
 import streamlit as st
-from sidebar import render_sidebar
-from simulation import run_simulation
+from app.sidebar import render_sidebar
+from app.simulation import run_simulation
 
 ICON_PATH = Path(__file__).parent / "images" / "GreenNavi.png"
 if ICON_PATH.exists():
