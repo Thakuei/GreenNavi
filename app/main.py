@@ -1,5 +1,5 @@
-from pathlib import Path
 import sys
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
@@ -7,6 +7,7 @@ if str(ROOT) not in sys.path:
 
 import pandas as pd
 import streamlit as st
+
 from app.sidebar import render_sidebar
 from app.simulation import run_simulation
 
