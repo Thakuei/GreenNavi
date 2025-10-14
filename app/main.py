@@ -13,7 +13,7 @@ if ICON_PATH.exists():
     st.set_page_config(page_title="GreenNavi", page_icon=str(ICON_PATH))
 else:
     st.set_page_config(page_title="GreenNavi", page_icon=":seedling:")
-    
+
 from app.sidebar import render_sidebar
 from app.simulation import run_simulation
 
