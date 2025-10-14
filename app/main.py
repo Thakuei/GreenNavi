@@ -8,14 +8,14 @@ if str(ROOT) not in sys.path:
 import pandas as pd
 import streamlit as st
 
-from app.sidebar import render_sidebar
-from app.simulation import run_simulation
-
-ICON_PATH = Path(__file__).parent / "images" / "GreenNavi.png"
+ICON_PATH = ROOT / "images" / "greennavi.png"
 if ICON_PATH.exists():
     st.set_page_config(page_title="GreenNavi", page_icon=str(ICON_PATH))
 else:
     st.set_page_config(page_title="GreenNavi", page_icon=":seedling:")
+
+from app.sidebar import render_sidebar
+from app.simulation import run_simulation
 
 st.title("GreenNavi")
 
