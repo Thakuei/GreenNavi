@@ -10,7 +10,7 @@ def render_sidebar():
     st.sidebar.header("2. シミュレーション設定")
 
     max_battery_capacity = st.sidebar.number_input(
-        "蓄電池容量 (kWh)", value=14.6, min_value=0.0, step=0.1, format="%.1f"
+        "蓄電池容量 (kWh)", value=14.6, min_value=0.0, max_value=14.6, step=0.1, format="%.1f"
     )
     buy_price = st.sidebar.number_input(
         "買電単価 (円/kWh)", value=31.0, min_value=0.0, step=0.5
