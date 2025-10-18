@@ -18,7 +18,7 @@ from app.battery_only import run_battery_only_simulation
 from app.sidebar import render_sidebar
 from app.simulation import run_simulation
 
-st.title("GreenNavi")
+st.header("GreenNavi", divider=True)
 
 settings = render_sidebar()
 uploaded_file = settings["uploaded_file"]
