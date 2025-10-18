@@ -64,11 +64,21 @@ if uploaded_file is not None:
         if result_df is not None:
             st.subheader("シミュレーション結果")
             st.dataframe(result_df)
+            st.subheader("主要指標")
+
+            household_consumption = (sum(result_df["pv_net_pos_kwh"]) - sum(result_df["sell_electricity"]))
+            total_cost = result_df["cost"].sum() * -1
+            total_buy_electricity = result_df["buy_electricity"].sum()
+            total_sell_electricity = result_df["sell_electricity"].sum()
+            
+
             st.table(
                 {
-                    "総コスト (円)": [result_df["cost"].sum() * -1],
-                    "総買電量 (kWh)": [result_df["buy_electricity"].sum()],
-                    "総売電量 (kWh)": [result_df["sell_electricity"].sum()],
+                    "総コスト (円)": [total_cost],
+                    "総買電量 (kWh)": [total_buy_electricity],
+                    "総売電量 (kWh)": [total_sell_electricity],
+                    "自家消費率 (%)": [household_consumption / sum(result_df["pv_net_pos_kwh"]) * 100],
+                    "自給率 (%)": [household_consumption / (household_consumption + total_buy_electricity) * 100],
                 }
             )
     else:
