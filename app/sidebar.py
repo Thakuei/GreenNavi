@@ -27,10 +27,10 @@ def render_sidebar():
         "蓄電池 定格出力 (kW)", value=3.0, min_value=0.0, step=0.5
     )
     el_rated_power_kwh = st.sidebar.number_input(
-        "電解装置 定格出力 (kW)", value=3.0, min_value=0.0, step=0.5
+        "水電解装置 定格出力 (kW)", value=3.0, min_value=0.0, step=0.5
     )
     el_efficiency = st.sidebar.slider(
-        "電解装置 効率", min_value=0.0, max_value=1.0, value=0.5, step=0.05
+        "水電解装置 効率", min_value=0.0, max_value=1.0, value=0.5, step=0.05
     )
     h2_storage_capacity_kwh = st.sidebar.number_input(
         "水素貯蔵容量 (kWh換算)", value=200.0, min_value=0.0, step=5.0
