@@ -70,11 +70,12 @@ if uploaded_file is not None:
             st.dataframe(result_df)
             st.subheader("主要指標")
 
-            household_consumption = (sum(result_df["pv_net_pos_kwh"]) - sum(result_df["sell_electricity"]))
+            household_consumption = sum(result_df["pv_net_pos_kwh"]) - sum(
+                result_df["sell_electricity"]
+            )
             total_cost = result_df["cost"].sum() * -1
             total_buy_electricity = result_df["buy_electricity"].sum()
             total_sell_electricity = result_df["sell_electricity"].sum()
-            
 
             st.table(
                 pd.DataFrame.from_dict(
@@ -82,11 +83,19 @@ if uploaded_file is not None:
                         "総コスト (円)": [total_cost],
                         "総買電量 (kWh)": [total_buy_electricity],
                         "総売電量 (kWh)": [total_sell_electricity],
-                        "自家消費率 (%)": [household_consumption / sum(result_df["pv_net_pos_kwh"]) * 100],
-                        "自給率 (%)": [household_consumption / (household_consumption + total_buy_electricity) * 100],
+                        "自家消費率 (%)": [
+                            household_consumption
+                            / sum(result_df["pv_net_pos_kwh"])
+                            * 100
+                        ],
+                        "自給率 (%)": [
+                            household_consumption
+                            / (household_consumption + total_buy_electricity)
+                            * 100
+                        ],
                     },
-                orient="index",
-                columns=["値"],
+                    orient="index",
+                    columns=["値"],
                 )
             )
     else:
