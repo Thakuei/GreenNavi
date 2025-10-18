@@ -68,8 +68,8 @@ def render_sidebar():
         fc_efficiency = None
         production_month = None
         consumption_month = None
-        
-    compare_mode = st.sidebar.checkbox("同条件での比較", value=False)
+
+    compare_mode = st.sidebar.checkbox("両モード比較", value=False)
 
     run_simulation_clicked = st.sidebar.button(
         "シミュレーションを実行", type="primary", width="stretch"
