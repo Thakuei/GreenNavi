@@ -27,8 +27,7 @@ compare_both = settings["compare_both"]
 
 if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
-    st.success("CSVファイルを読み込みました")
-    st.write("ファイル名:", uploaded_file.name)
+    st.success("CSVファイルを読み込みました。ファイル名: {}".format(uploaded_file.name))
 
     st.subheader("現在の設定値")
     st.table(
