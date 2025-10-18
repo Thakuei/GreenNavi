@@ -68,6 +68,8 @@ def render_sidebar():
         fc_efficiency = None
         production_month = None
         consumption_month = None
+        
+    compare_mode = st.sidebar.checkbox("同条件での比較", value=False)
 
     run_simulation_clicked = st.sidebar.button(
         "シミュレーションを実行", type="primary", width="stretch"
@@ -75,10 +77,14 @@ def render_sidebar():
 
     return {
         "uploaded_file": uploaded_file,
+        "mode": mode,
+        "compare_mode": compare_mode,
+        # 共通項目
         "max_battery_capacity": max_battery_capacity,
         "buy_price": buy_price,
         "sell_price": sell_price,
         "battery_rated_power_kwh": battery_rated_power_kwh,
+        # 水素関連項目
         "el_rated_power_kwh": el_rated_power_kwh,
         "el_efficiency": el_efficiency,
         "h2_storage_capacity_kwh": h2_storage_capacity_kwh,
