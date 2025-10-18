@@ -8,6 +8,13 @@ def render_sidebar():
     )
 
     st.sidebar.header("2. シミュレーション設定")
+    
+    mode = st.sidebar.segmented_control(
+        "モード選択",
+        options=["蓄電池", "蓄電池 + 水素"],
+        default = "蓄電池 + 水素",
+        width="stretch",
+    )
 
     max_battery_capacity = st.sidebar.number_input(
         "蓄電池容量 (kWh)",
