@@ -14,9 +14,9 @@ if ICON_PATH.exists():
 else:
     st.set_page_config(page_title="GreenNavi", page_icon=":seedling:")
 
+from app.battery_only import run_battery_only_simulation
 from app.sidebar import render_sidebar
 from app.simulation import run_simulation
-from app.battery_only import run_battery_only_simulation
 
 st.title("GreenNavi")
 
