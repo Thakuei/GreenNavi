@@ -23,6 +23,7 @@ st.title("GreenNavi")
 settings = render_sidebar()
 uploaded_file = settings["uploaded_file"]
 run_simulation_clicked = settings["run_simulation_clicked"]
+compare_both = settings["compare_both"]
 
 if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
@@ -57,11 +58,60 @@ if uploaded_file is not None:
             if key not in {"uploaded_file", "run_simulation_clicked"}
         }
 
+        def summarize(df_: pd.DataFrame) -> pd.DataFrame:
+            household_consumption = sum(df_["pv_net_pos_kwh"]) - sum(
+                df_["sell_electricity"]
+            )
+            total_cost = df_["cost"].sum() * -1
+            total_buy_electricity = df_["buy_electricity"].sum()
+            total_sell_electricity = df_["sell_electricity"].sum()
+
+            return pd.DataFrame.from_dict(
+                {
+                    "総コスト (円)": [total_cost],
+                    "総買電量 (kWh)": [total_buy_electricity],
+                    "総売電量 (kWh)": [total_sell_electricity],
+                    "自家消費率 (%)": [
+                        household_consumption / sum(df_["pv_net_pos_kwh"]) * 100
+                    ],
+                    "自給率 (%)": [
+                        household_consumption
+                        / (household_consumption + total_buy_electricity)
+                        * 100
+                    ],
+                },
+                orient="index",
+                columns=["値"],
+            )
+
         try:
-            if settings["mode"] == "蓄電池":
-                result_df = run_battery_only_simulation(df, simulation_settings)
+            if compare_both:
+                col_l, col_r = st.columns(2)
+
+                with col_l:
+                    st.subheader("蓄電池のみ")
+                    result_df = run_battery_only_simulation(df, simulation_settings)
+                    st.dataframe(result_df)
+                    st.subheader("主要指標")
+                    st.table(summarize(result_df))
+
+                with col_r:
+                    st.subheader("蓄電池 + 水素")
+                    result_df = run_simulation(df, simulation_settings)
+                    st.dataframe(result_df)
+                    st.subheader("主要指標")
+                    st.table(summarize(result_df))
+
+                result_df = None
+
             else:
-                result_df = run_simulation(df, simulation_settings)
+                if settings["mode"] == "蓄電池":
+                    st.subheader("蓄電池")
+                    result_df = run_battery_only_simulation(df, simulation_settings)
+                else:
+                    st.subheader("蓄電池 + 水素")
+                    result_df = run_simulation(df, simulation_settings)
+
         except KeyError as error:
             st.error(f"CSV内に必要な列が見つかりません: {error}")
             result_df = None
@@ -73,35 +123,7 @@ if uploaded_file is not None:
             st.subheader("シミュレーション結果")
             st.dataframe(result_df)
             st.subheader("主要指標")
-
-            household_consumption = sum(result_df["pv_net_pos_kwh"]) - sum(
-                result_df["sell_electricity"]
-            )
-            total_cost = result_df["cost"].sum() * -1
-            total_buy_electricity = result_df["buy_electricity"].sum()
-            total_sell_electricity = result_df["sell_electricity"].sum()
-
-            st.table(
-                pd.DataFrame.from_dict(
-                    {
-                        "総コスト (円)": [total_cost],
-                        "総買電量 (kWh)": [total_buy_electricity],
-                        "総売電量 (kWh)": [total_sell_electricity],
-                        "自家消費率 (%)": [
-                            household_consumption
-                            / sum(result_df["pv_net_pos_kwh"])
-                            * 100
-                        ],
-                        "自給率 (%)": [
-                            household_consumption
-                            / (household_consumption + total_buy_electricity)
-                            * 100
-                        ],
-                    },
-                    orient="index",
-                    columns=["値"],
-                )
-            )
+            st.table(summarize(result_df))
     else:
         st.info(
             "設定を確認したらサイドバーの「シミュレーションを実行」を押してください"

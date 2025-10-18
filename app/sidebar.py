@@ -69,6 +69,8 @@ def render_sidebar():
         production_month = None
         consumption_month = None
 
+    compare_both = st.sidebar.checkbox("同時比較", value=False)
+
     run_simulation_clicked = st.sidebar.button(
         "シミュレーションを実行", type="primary", width="stretch"
     )
@@ -90,4 +92,6 @@ def render_sidebar():
         "production_month": production_month,
         "consumption_month": consumption_month,
         "run_simulation_clicked": run_simulation_clicked,
+        # 同時比較
+        "compare_both": compare_both,
     }
