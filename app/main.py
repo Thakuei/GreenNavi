@@ -14,6 +14,7 @@ if ICON_PATH.exists():
 else:
     st.set_page_config(page_title="GreenNavi", page_icon=":seedling:")
 
+from app.battery_only import run_battery_only_simulation
 from app.sidebar import render_sidebar
 from app.simulation import run_simulation
 
@@ -57,7 +58,10 @@ if uploaded_file is not None:
         }
 
         try:
-            result_df = run_simulation(df, simulation_settings)
+            if settings["mode"] == "蓄電池":
+                result_df = run_battery_only_simulation(df, simulation_settings)
+            else:
+                result_df = run_simulation(df, simulation_settings)
         except KeyError as error:
             st.error(f"CSV内に必要な列が見つかりません: {error}")
             result_df = None
