@@ -89,17 +89,17 @@ if uploaded_file is not None:
                 col_l, col_r = st.columns(2)
 
                 with col_l:
-                    st.subheader("蓄電池")
-                    result_df = run_battery_only_simulation(df, simulation_settings)
-                    st.dataframe(result_df)
-                    st.subheader("主要指標")
+                    with st.expander("蓄電池"):
+                        result_df = run_battery_only_simulation(df, simulation_settings)
+                        st.dataframe(result_df)
+                    st.subheader("主要指標(蓄電池)")
                     st.table(summarize(result_df))
 
                 with col_r:
-                    st.subheader("蓄電池 + 水素")
-                    result_df = run_simulation(df, simulation_settings)
-                    st.dataframe(result_df)
-                    st.subheader("主要指標")
+                    with st.expander("蓄電池 + 水素"):
+                        result_df = run_simulation(df, simulation_settings)
+                        st.dataframe(result_df)
+                    st.subheader("主要指標(蓄電池 + 水素)")
                     st.table(summarize(result_df))
 
                 result_df = None
