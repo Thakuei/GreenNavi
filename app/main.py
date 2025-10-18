@@ -16,6 +16,7 @@ else:
 
 from app.sidebar import render_sidebar
 from app.simulation import run_simulation
+from app.battery_only import run_battery_only_simulation
 
 st.title("GreenNavi")
 
@@ -57,7 +58,10 @@ if uploaded_file is not None:
         }
 
         try:
-            result_df = run_simulation(df, simulation_settings)
+            if settings["mode"] == "蓄電池":
+                result_df = run_battery_only_simulation(df, simulation_settings)
+            else:
+                result_df = run_simulation(df, simulation_settings)
         except KeyError as error:
             st.error(f"CSV内に必要な列が見つかりません: {error}")
             result_df = None

@@ -76,7 +76,6 @@ def render_sidebar():
     return {
         "uploaded_file": uploaded_file,
         "mode": mode,
-        "compare_mode": compare_mode,
         # 共通項目
         "max_battery_capacity": max_battery_capacity,
         "buy_price": buy_price,
