@@ -30,19 +30,23 @@ if uploaded_file is not None:
 
     st.subheader("現在の設定値")
     st.table(
-        {
-            "max_battery_capacity": settings["max_battery_capacity"],
-            "buy_price": settings["buy_price"],
-            "sell_price": settings["sell_price"],
-            "battery_rated_power_kwh": settings["battery_rated_power_kwh"],
-            "el_rated_power_kwh": settings["el_rated_power_kwh"],
-            "el_efficiency": settings["el_efficiency"],
-            "h2_storage_capacity_kwh": settings["h2_storage_capacity_kwh"],
-            "fc_rated_power_kwh": settings["fc_rated_power_kwh"],
-            "fc_efficiency": settings["fc_efficiency"],
-            "production_month": settings["production_month"],
-            "consumption_month": settings["consumption_month"],
-        }
+        pd.DataFrame.from_dict(
+            {
+                "max_battery_capacity": settings["max_battery_capacity"],
+                "buy_price": settings["buy_price"],
+                "sell_price": settings["sell_price"],
+                "battery_rated_power_kwh": settings["battery_rated_power_kwh"],
+                "el_rated_power_kwh": settings["el_rated_power_kwh"],
+                "el_efficiency": settings["el_efficiency"],
+                "h2_storage_capacity_kwh": settings["h2_storage_capacity_kwh"],
+                "fc_rated_power_kwh": settings["fc_rated_power_kwh"],
+                "fc_efficiency": settings["fc_efficiency"],
+                "production_month": settings["production_month"],
+                "consumption_month": settings["consumption_month"],
+            },
+            orient="index",
+            columns=["値"],
+        )
     )
 
     if run_simulation_clicked:
@@ -73,13 +77,17 @@ if uploaded_file is not None:
             
 
             st.table(
-                {
-                    "総コスト (円)": [total_cost],
-                    "総買電量 (kWh)": [total_buy_electricity],
-                    "総売電量 (kWh)": [total_sell_electricity],
-                    "自家消費率 (%)": [household_consumption / sum(result_df["pv_net_pos_kwh"]) * 100],
-                    "自給率 (%)": [household_consumption / (household_consumption + total_buy_electricity) * 100],
-                }
+                pd.DataFrame.from_dict(
+                    {
+                        "総コスト (円)": [total_cost],
+                        "総買電量 (kWh)": [total_buy_electricity],
+                        "総売電量 (kWh)": [total_sell_electricity],
+                        "自家消費率 (%)": [household_consumption / sum(result_df["pv_net_pos_kwh"]) * 100],
+                        "自給率 (%)": [household_consumption / (household_consumption + total_buy_electricity) * 100],
+                    },
+                orient="index",
+                columns=["値"],
+                )
             )
     else:
         st.info(
