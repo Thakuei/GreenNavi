@@ -16,6 +16,11 @@ def render_sidebar():
         width="stretch",
     )
 
+    is_battery_only = mode == "蓄電池"
+
+    if is_battery_only and st.session_state.get("compare_both", False):
+        st.session_state["compare_both"] = False
+
     # 共通項目
     max_battery_capacity = st.sidebar.number_input(
         "蓄電池容量 (kWh)",
@@ -69,6 +74,14 @@ def render_sidebar():
         production_month = None
         consumption_month = None
 
+    compare_both = st.sidebar.checkbox(
+        "同時比較",
+        key="compare_both",
+        value=st.session_state.get("compare_both", False),
+        disabled=is_battery_only,
+        help="蓄電池 + 水素モード時のみ有効です",
+    )
+
     run_simulation_clicked = st.sidebar.button(
         "シミュレーションを実行", type="primary", width="stretch"
     )
@@ -90,4 +103,6 @@ def render_sidebar():
         "production_month": production_month,
         "consumption_month": consumption_month,
         "run_simulation_clicked": run_simulation_clicked,
+        # 同時比較
+        "compare_both": compare_both,
     }
