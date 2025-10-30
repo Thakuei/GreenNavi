@@ -17,6 +17,8 @@ else:
 from app.battery_only import run_battery_only_simulation
 from app.sidebar import render_sidebar
 from app.simulation import run_simulation
+from app.graph.sell_electricity import plot_sell_electricity
+from app.graph.buy_electrivity import plot_buy_electricity
 
 st.header("GreenNavi", divider=True)
 
@@ -94,6 +96,8 @@ if uploaded_file is not None:
                         st.dataframe(result_df)
                     st.subheader("主要指標(蓄電池)", divider="green")
                     st.table(summarize(result_df))
+                    st.subheader("時系列グラフ(蓄電池)", divider="green")
+                    plot_sell_electricity(result_df)
 
                 with col_r:
                     st.subheader("蓄電池 + 水素", divider=True)
@@ -102,6 +106,8 @@ if uploaded_file is not None:
                         st.dataframe(result_df)
                     st.subheader("主要指標(蓄電池 + 水素)", divider="green")
                     st.table(summarize(result_df))
+                    st.subheader("時系列グラフ(蓄電池 + 水素)", divider="green")
+                    plot_sell_electricity(result_df)
 
                 result_df = None
 
@@ -125,6 +131,10 @@ if uploaded_file is not None:
             st.dataframe(result_df)
             st.subheader("主要指標")
             st.table(summarize(result_df))
+            st.subheader("時系列グラフ", divider="rainbow")
+            plot_sell_electricity(result_df)
+            plot_buy_electricity(result_df)
+
     else:
         st.info(
             "設定を確認したらサイドバーの「シミュレーションを実行」を押してください"

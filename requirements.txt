@@ -3,3 +3,6 @@ black
 isort
 python-dotenv
 pandas
+matplotlib
+japanize-matplotlib
+setuptools
