@@ -131,7 +131,9 @@ def _cost_and_battery_capacity(
     )
 
 
-def run_simulation(df: pd.DataFrame, settings: Mapping[str, object]) -> pd.DataFrame:
+def run_battery_and_hydrogen_simulation(
+    df: pd.DataFrame, settings: Mapping[str, object]
+) -> pd.DataFrame:
     """
     Run the hourly simulation and return a DataFrame with additional metrics.
     """
