@@ -10,9 +10,11 @@ import streamlit as st
 
 ICON_PATH = ROOT / "images" / "greennavi.png"
 if ICON_PATH.exists():
-    st.set_page_config(page_title="GreenNavi", page_icon=str(ICON_PATH))
+    st.set_page_config(
+        page_title="GreenNavi", page_icon=str(ICON_PATH), layout="wide"
+    )
 else:
-    st.set_page_config(page_title="GreenNavi", page_icon=":seedling:")
+    st.set_page_config(page_title="GreenNavi", page_icon=":seedling:", layout="wide")
 
 from app.battery_only import run_battery_only_simulation
 from app.graph.buy_electrivity import plot_buy_electricity
