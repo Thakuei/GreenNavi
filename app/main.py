@@ -60,7 +60,7 @@ if uploaded_file is not None:
         }
 
         def summarize(
-            df_: pd.DataFrame, battery_only_buy: float = None
+            df_: pd.DataFrame, battery_only_simulation: float = None
         ) -> pd.DataFrame:
             household_consumption = sum(df_["pv_net_pos_kwh"]) - sum(
                 df_["sell_electricity"]
@@ -83,8 +83,8 @@ if uploaded_file is not None:
                 ],
             }
 
-            if battery_only_buy is not None:
-                reduction_rate = (total_buy_electricity / battery_only_buy) * 100
+            if battery_only_simulation is not None:
+                reduction_rate = (total_buy_electricity / battery_only_simulation) * 100
                 result["削減率 (%)"] = [reduction_rate]
             else:
                 result["削減率 (%)"] = ["--"]
@@ -106,7 +106,7 @@ if uploaded_file is not None:
                             df, simulation_settings
                         )
                         st.dataframe(result_df_battery)
-                    battery_only_buy = result_df_battery["buy_electricity"].sum()
+                    battery_only_simulation = result_df_battery["buy_electricity"].sum()
                     st.subheader("主要指標(蓄電池)", divider="green")
                     st.table(summarize(result_df_battery))
                     st.subheader("時系列グラフ", divider="rainbow")
@@ -121,7 +121,7 @@ if uploaded_file is not None:
                         )
                         st.dataframe(result_df_hydrogen)
                     st.subheader("主要指標(蓄電池 + 水素)", divider="green")
-                    st.table(summarize(result_df_hydrogen, battery_only_buy))
+                    st.table(summarize(result_df_hydrogen, battery_only_simulation))
                     st.subheader("時系列グラフ", divider="rainbow")
                     plot_sell_electricity(result_df_hydrogen)
                     plot_buy_electricity(result_df_hydrogen)
