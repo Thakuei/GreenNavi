@@ -10,13 +10,15 @@ import streamlit as st
 
 ICON_PATH = ROOT / "images" / "greennavi.png"
 if ICON_PATH.exists():
-    st.set_page_config(page_title="GreenNavi", page_icon=str(ICON_PATH))
+    st.set_page_config(page_title="GreenNavi", page_icon=str(ICON_PATH), layout="wide")
 else:
-    st.set_page_config(page_title="GreenNavi", page_icon=":seedling:")
+    st.set_page_config(page_title="GreenNavi", page_icon=":seedling:", layout="wide")
 
+from app.battery_and_hydrogen import run_battery_and_hydrogen_simulation
 from app.battery_only import run_battery_only_simulation
+from app.graph.buy_electrivity import plot_buy_electricity
+from app.graph.sell_electricity import plot_sell_electricity
 from app.sidebar import render_sidebar
-from app.simulation import run_simulation
 
 st.header("GreenNavi", divider=True)
 
@@ -57,7 +59,9 @@ if uploaded_file is not None:
             if key not in {"uploaded_file", "run_simulation_clicked"}
         }
 
-        def summarize(df_: pd.DataFrame) -> pd.DataFrame:
+        def summarize(
+            df_: pd.DataFrame, battery_only_simulation: float = None
+        ) -> pd.DataFrame:
             household_consumption = sum(df_["pv_net_pos_kwh"]) - sum(
                 df_["sell_electricity"]
             )
@@ -65,20 +69,28 @@ if uploaded_file is not None:
             total_buy_electricity = df_["buy_electricity"].sum()
             total_sell_electricity = df_["sell_electricity"].sum()
 
+            result = {
+                "総コスト (円)": [total_cost],
+                "総買電量 (kWh)": [total_buy_electricity],
+                "総売電量 (kWh)": [total_sell_electricity],
+                "自家消費率 (%)": [
+                    household_consumption / sum(df_["pv_net_pos_kwh"]) * 100
+                ],
+                "自給率 (%)": [
+                    household_consumption
+                    / (household_consumption + total_buy_electricity)
+                    * 100
+                ],
+            }
+
+            if battery_only_simulation is not None:
+                reduction_rate = (total_buy_electricity / battery_only_simulation) * 100
+                result["削減率 (%)"] = [reduction_rate]
+            else:
+                result["削減率 (%)"] = ["--"]
+
             return pd.DataFrame.from_dict(
-                {
-                    "総コスト (円)": [total_cost],
-                    "総買電量 (kWh)": [total_buy_electricity],
-                    "総売電量 (kWh)": [total_sell_electricity],
-                    "自家消費率 (%)": [
-                        household_consumption / sum(df_["pv_net_pos_kwh"]) * 100
-                    ],
-                    "自給率 (%)": [
-                        household_consumption
-                        / (household_consumption + total_buy_electricity)
-                        * 100
-                    ],
-                },
+                result,
                 orient="index",
                 columns=["値"],
             )
@@ -90,18 +102,29 @@ if uploaded_file is not None:
                 with col_l:
                     st.subheader("蓄電池", divider=True)
                     with st.expander("蓄電池"):
-                        result_df = run_battery_only_simulation(df, simulation_settings)
-                        st.dataframe(result_df)
+                        result_df_battery = run_battery_only_simulation(
+                            df, simulation_settings
+                        )
+                        st.dataframe(result_df_battery)
+                    battery_only_simulation = result_df_battery["buy_electricity"].sum()
                     st.subheader("主要指標(蓄電池)", divider="green")
-                    st.table(summarize(result_df))
+                    st.table(summarize(result_df_battery))
+                    st.subheader("時系列グラフ", divider="rainbow")
+                    plot_sell_electricity(result_df_battery)
+                    plot_buy_electricity(result_df_battery)
 
                 with col_r:
                     st.subheader("蓄電池 + 水素", divider=True)
                     with st.expander("蓄電池 + 水素"):
-                        result_df = run_simulation(df, simulation_settings)
-                        st.dataframe(result_df)
+                        result_df_hydrogen = run_battery_and_hydrogen_simulation(
+                            df, simulation_settings
+                        )
+                        st.dataframe(result_df_hydrogen)
                     st.subheader("主要指標(蓄電池 + 水素)", divider="green")
-                    st.table(summarize(result_df))
+                    st.table(summarize(result_df_hydrogen, battery_only_simulation))
+                    st.subheader("時系列グラフ", divider="rainbow")
+                    plot_sell_electricity(result_df_hydrogen)
+                    plot_buy_electricity(result_df_hydrogen)
 
                 result_df = None
 
@@ -111,7 +134,9 @@ if uploaded_file is not None:
                     result_df = run_battery_only_simulation(df, simulation_settings)
                 else:
                     st.subheader("蓄電池 + 水素", divider=True)
-                    result_df = run_simulation(df, simulation_settings)
+                    result_df = run_battery_and_hydrogen_simulation(
+                        df, simulation_settings
+                    )
 
         except KeyError as error:
             st.error(f"CSV内に必要な列が見つかりません: {error}")
@@ -125,6 +150,10 @@ if uploaded_file is not None:
             st.dataframe(result_df)
             st.subheader("主要指標")
             st.table(summarize(result_df))
+            st.subheader("時系列グラフ", divider="rainbow")
+            plot_sell_electricity(result_df)
+            plot_buy_electricity(result_df)
+
     else:
         st.info(
             "設定を確認したらサイドバーの「シミュレーションを実行」を押してください"
