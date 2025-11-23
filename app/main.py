@@ -18,6 +18,8 @@ from app.battery_and_hydrogen import run_battery_and_hydrogen_simulation
 from app.battery_only import run_battery_only_simulation
 from app.graph.buy_electrivity import plot_buy_electricity
 from app.graph.sell_electricity import plot_sell_electricity
+from app.graph.h2_storage_kwh import plot_h2_storage_kwh
+from app.graph.repair_the_cottage import plot_repair_the_cottage
 from app.sidebar import render_sidebar
 
 st.header("GreenNavi", divider=True)
@@ -125,6 +127,8 @@ if uploaded_file is not None:
                     st.subheader("時系列グラフ", divider="rainbow")
                     plot_sell_electricity(result_df_hydrogen)
                     plot_buy_electricity(result_df_hydrogen)
+                    plot_h2_storage_kwh(result_df_hydrogen)
+                    plot_repair_the_cottage(result_df_hydrogen)
 
                 result_df = None
 
@@ -153,6 +157,9 @@ if uploaded_file is not None:
             st.subheader("時系列グラフ", divider="rainbow")
             plot_sell_electricity(result_df)
             plot_buy_electricity(result_df)
+            plot_repair_the_cottage(result_df)
+            if settings["mode"] == "蓄電池 + 水素":
+                plot_h2_storage_kwh(result_df)
 
     else:
         st.info(
