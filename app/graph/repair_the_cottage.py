@@ -3,12 +3,15 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import streamlit as st
 
+
 def plot_repair_the_cottage(df: pd.DataFrame):
     df_copy = df.copy()
     df_copy["month"] = df_copy["TIME"].dt.month
 
     # PVで賄えなかった不足（PVの後ろの不足）
-    df_copy["shortage_after_pv"] = (df_copy["load_site_kwh"] - df_copy["pv_net_pos_kwh"]).clip(lower=0)
+    df_copy["shortage_after_pv"] = (
+        df_copy["load_site_kwh"] - df_copy["pv_net_pos_kwh"]
+    ).clip(lower=0)
 
     # 月別集計（kWh）
     monthly = df_copy.groupby("month").agg(
@@ -19,14 +22,14 @@ def plot_repair_the_cottage(df: pd.DataFrame):
     )
 
     # ★ 4月スタート順に並べ替え
-    order = [4,5,6,7,8,9,10,11,12,1,2,3]
+    order = [4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3]
     monthly = monthly.loc[order]
     x = list(range(len(order)))
 
     # NumPy配列にして stacked bar の bottom に使う
     months = monthly.index.values
     batt = monthly["battery_discharge"].values
-    fc   = monthly["fc_output"].values
+    fc = monthly["fc_output"].values
     grid = monthly["grid_buy"].values
 
     plt.figure(figsize=(10, 8))

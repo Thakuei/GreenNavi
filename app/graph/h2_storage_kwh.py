@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import streamlit as st
 
+
 # MAXのときにグラフが200にならないのは月で計算しているため日数の関係で割ると200にはならない
 def plot_h2_storage_kwh(df: pd.DataFrame):
     df_copy = df.copy()

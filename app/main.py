@@ -17,9 +17,9 @@ else:
 from app.battery_and_hydrogen import run_battery_and_hydrogen_simulation
 from app.battery_only import run_battery_only_simulation
 from app.graph.buy_electrivity import plot_buy_electricity
-from app.graph.sell_electricity import plot_sell_electricity
 from app.graph.h2_storage_kwh import plot_h2_storage_kwh
 from app.graph.repair_the_cottage import plot_repair_the_cottage
+from app.graph.sell_electricity import plot_sell_electricity
 from app.sidebar import render_sidebar
 
 st.header("GreenNavi", divider=True)
