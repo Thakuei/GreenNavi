@@ -7,3 +7,5 @@ services:
       - "8080:8501"
     volumes:
       - .:/app
+      - "/Volumes/SSD-PHPU3A/PD3/2024_2025_DCM:/app/data"
+      - "/Volumes/SSD-PHPU3A/PD3/2024_2025_DCM_summary:/app/output"
