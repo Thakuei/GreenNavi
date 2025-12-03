@@ -1,5 +1,5 @@
-import sys
 import io
+import sys
 from pathlib import Path
 
 import pandas as pd
