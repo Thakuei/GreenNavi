@@ -70,7 +70,7 @@ if uploaded_file is not None:
             total_cost = df_["cost"].sum() * -1
             total_buy_electricity = df_["buy_electricity"].sum()
             total_sell_electricity = df_["sell_electricity"].sum()
-
+            carbon_dioxide_emissions = total_buy_electricity * 0.431  # kg-CO2/kWh
             result = {
                 "総コスト (円)": [total_cost],
                 "総買電量 (kWh)": [total_buy_electricity],
@@ -83,6 +83,7 @@ if uploaded_file is not None:
                     / (household_consumption + total_buy_electricity)
                     * 100
                 ],
+                "二酸化炭素排出量(kg-CO2)": [carbon_dioxide_emissions],  # kg-CO2
             }
 
             if battery_only_simulation is not None:
