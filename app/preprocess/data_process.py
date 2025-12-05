@@ -62,10 +62,7 @@ def merge_and_compress_hourly(
 
             # 1時間ごとにリサンプリング（平均）
             df = (
-                df.set_index("TIME")
-                .resample("h")
-                .mean(numeric_only=True)
-                .reset_index()
+                df.set_index("TIME").resample("h").mean(numeric_only=True).reset_index()
             )
 
             if df.empty:
@@ -101,6 +98,7 @@ def merge_and_compress_hourly(
     print(f"全ファイル結合: {output_path} に保存しました。👍")
 
     return output_path
+
 
 # 後処理用の関数
 def transform_to_simulation_df(
