@@ -1,4 +1,3 @@
-# app/preprocess/merge_hourly.py
 from __future__ import annotations
 
 import glob
@@ -7,7 +6,6 @@ from pathlib import Path
 from typing import Optional
 
 import pandas as pd
-
 
 def merge_and_compress_hourly(
     input_dir: Path,
@@ -62,7 +60,12 @@ def merge_and_compress_hourly(
                 continue
 
             # 1時間ごとにリサンプリング（平均）
-            df = df.set_index("TIME").resample("1H").mean(numeric_only=True).reset_index()
+            df = (
+                df.set_index("TIME")
+                .resample("h")
+                .mean(numeric_only=True)
+                .reset_index()
+            )
 
             if df.empty:
                 print(f"警告: resample 後に空になったためスキップ: {file_name}")
@@ -80,8 +83,166 @@ def merge_and_compress_hourly(
     merged_df = pd.concat(compressed_df_list, ignore_index=True)
     merged_df = merged_df.sort_values("TIME").reset_index(drop=True)
 
+    # --- 変更点: デバッグログとエラーハンドリングを追加 ---
+    print("transform_to_simulation_df を呼び出します...")
+    try:
+        merged_df = transform_to_simulation_df(merged_df, max_battery_capacity_kwh=7.4)
+        print("transform_to_simulation_df の処理が完了しました。")
+    except Exception as e:
+        print(f"transform_to_simulation_df でエラーが発生しました: {e}")
+        # エラー発生時に現在のカラム構成を確認できるようにする
+        print(f"現在のカラム一覧: {merged_df.columns.tolist()}")
+        raise e
+    # ---------------------------------------------------
+
     output_path = output_dir / output_filename
     merged_df.to_csv(output_path, index=False)
     print(f"全ファイル結合: {output_path} に保存しました。👍")
 
     return output_path
+
+# 後処理用の関数
+def transform_to_simulation_df(
+    df: pd.DataFrame,
+    max_battery_capacity_kwh: float = 7.4,
+) -> pd.DataFrame:
+    """
+    1時間平均済みデータに対して、
+    ・必要カラムの抽出
+    ・各種計算
+    ・名前変更
+    ・スケーリング
+    を行い、シミュレーション用の形に整える。
+    """
+
+    # 元の列名のズレ（全角スペース付き）を補正
+    df = df.rename(
+        columns={
+            "直流母線\u3000計測電圧（000.0V)": "直流母線計測電圧（000.0V)",
+        }
+    )
+
+    # 必要なカラム
+    desired_columns = [
+        "TIME",
+        "太陽光EZAグリッド電力(W)",
+        "太陽光EZAバッテリ電力(W)",
+        "バッテリEZAグリッド側電力(W)",
+        "バッテリEZAバッテリ側電力(W)",
+        "パワコンCT電流（00.00A）",
+        "直流母線計測電圧（000.0V)",
+        "制御電源電流(0.00A)",
+        "バッテリSOC(%)",
+    ]
+
+    missing = [c for c in desired_columns if c not in df.columns]
+    if missing:
+        raise KeyError(f"必要なカラムが不足しています: {missing}")
+
+    # 必要カラムだけ抜き出し
+    df = df[desired_columns].copy()
+
+    # --- 変数計算（元コードをほぼそのまま移植）---
+
+    # 太陽光パネルの発電量 (1.7kW)
+    df["太陽光パネル(1.7kw)の発電量"] = (
+        df["太陽光EZAグリッド電力(W)"] + df["太陽光EZAバッテリ電力(W)"]
+    )
+
+    # コテージ102のAC負荷
+    df["コテージ102のAC負荷"] = (df["パワコンCT電流（00.00A）"] * 0.01) * (
+        df["直流母線計測電圧（000.0V)"] * 0.1
+    )
+
+    # コテージ102の制御装置負荷
+    df["コテージ102の制御装置負荷"] = (df["制御電源電流(0.00A)"] * 0.01) * (
+        df["直流母線計測電圧（000.0V)"] * 0.1
+    )
+
+    # コテージ102の総負荷
+    df["コテージ102の負荷"] = (
+        df["コテージ102のAC負荷"] + df["コテージ102の制御装置負荷"]
+    )
+
+    # 発電量の符号反転
+    df["太陽光パネル(1.7kw)の発電量(反転)"] = -df["太陽光パネル(1.7kw)の発電量"]
+
+    # 余剰電力（反転側 - 負荷）
+    df["余剰電力"] = df["太陽光パネル(1.7kw)の発電量(反転)"] - df["コテージ102の負荷"]
+
+    # ここからシミュレーション用に必要な列だけ残す
+    df = df[
+        [
+            "TIME",
+            "コテージ102の負荷",
+            "余剰電力",
+            "太陽光パネル(1.7kw)の発電量(反転)",
+            "バッテリSOC(%)",
+        ]
+    ].copy()
+
+    # SOC は最初の 1 行だけ使い、それ以降は NaN にする
+    if "バッテリSOC(%)" in df.columns and len(df) > 1:
+        df.loc[1:, "バッテリSOC(%)"] = float("nan")
+
+    # 英語名に変換
+    def change_name(df_: pd.DataFrame) -> pd.DataFrame:
+        return df_.rename(
+            columns={
+                "コテージ102の負荷": "cottage_consumption",
+                "太陽光パネル(1.7kw)の発電量(反転)": "pv_power_generation",
+                "バッテリSOC(%)": "battery_capacity",
+                "余剰電力": "surplus_electricity",
+            }
+        )
+
+    df = change_name(df)
+
+    # W → kW へのスケーリング
+    df["cottage_consumption"] = df["cottage_consumption"] / 1000.0
+    df["pv_power_generation"] = df["pv_power_generation"] / 1000.0
+    df["surplus_electricity"] = df["surplus_electricity"] / 1000.0
+
+    # % → kWh（バッテリ容量 7.4kWh 前提）
+    df["battery_capacity"] = max_battery_capacity_kwh * (df["battery_capacity"] / 100.0)
+
+    # 列名を最終形に
+    df = df.rename(
+        columns={
+            "cottage_consumption": "load_site_kwh",
+            "surplus_electricity": "pv_surplus_kwh",
+            "battery_capacity": "batt_soc_kwh",
+        }
+    )
+
+    # pv_power_generation を正負に分解
+    pv = df["pv_power_generation"]
+    df["pv_net_pos_kwh"] = pv.clip(lower=0)  # 正の部分
+    df["pv_aux_kwh"] = (-pv).clip(lower=0)  # 負の部分
+
+    # いったん元の surplus を捨てて再計算
+    df.drop(columns=["pv_power_generation"], inplace=True)
+    df.drop(columns=["pv_surplus_kwh"], inplace=True)
+
+    df["pv_surplus_kwh"] = (df["pv_net_pos_kwh"] - df["load_site_kwh"]).clip(lower=0)
+    df["load_deficit_kwh"] = (df["load_site_kwh"] - df["pv_net_pos_kwh"]).clip(lower=0)
+
+    # 整合チェック（余剰と不足が同時に >0 になる行がないこと）
+    assert (
+        (df["pv_surplus_kwh"] > 0) & (df["load_deficit_kwh"] > 0)
+    ).sum() == 0, "pv_surplus_kwh と load_deficit_kwh が同時に正の行があります"
+
+    # カラム並び替え
+    df = df[
+        [
+            "TIME",
+            "load_site_kwh",
+            "pv_net_pos_kwh",
+            "pv_aux_kwh",
+            "pv_surplus_kwh",
+            "load_deficit_kwh",
+            "batt_soc_kwh",
+        ]
+    ].copy()
+
+    return df
