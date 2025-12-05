@@ -1,0 +1,13 @@
+[tool.black]
+exclude = '''
+/(
+    data
+  | output
+  | app/data
+  | app/output
+  | \.venv
+  | \.git
+  | \.mypy_cache
+  | \.pytest_cache
+)/
+'''
