@@ -7,6 +7,7 @@ from typing import Optional
 
 import pandas as pd
 
+
 def merge_and_compress_hourly(
     input_dir: Path,
     output_dir: Path,
