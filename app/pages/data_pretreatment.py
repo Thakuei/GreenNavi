@@ -1,4 +1,5 @@
 import io
+import os
 import sys
 from pathlib import Path
 
@@ -21,24 +22,43 @@ else:
 
 st.title("データ前処理")
 
-# コンテナ内の入出力ディレクトリ（Docker でマウントする）
-DATA_ROOT = Path("/app/data")
-OUTPUT_ROOT = Path("/app/output")
+# --- 環境変数からディレクトリパスを取得 ---
+# 環境変数が設定されていなければ、デフォルト値 (/app/data, /app/output) を使用
+# これにより、従来の Docker での実行と、ホストでの直接実行の両方に対応
+INPUT_DIR_PATH = os.getenv("INPUT_DIR", "/app/data")
+OUTPUT_DIR_PATH = os.getenv("OUTPUT_DIR", "/app/output")
+
+DATA_ROOT = Path(INPUT_DIR_PATH)
+OUTPUT_ROOT = Path(OUTPUT_DIR_PATH)
+
+st.info(
+    """
+    データ入力ディレクトリ: `{DATA_ROOT}`
+    データ出力ディレクトリ: `{OUTPUT_ROOT}`
+
+    これらのパスは環境変数 `INPUT_DIR`, `OUTPUT_DIR` で変更できます。
+    """
+)
+
 
 # /app/data の存在チェック
-if not DATA_ROOT.exists():
-    st.error(f"{DATA_ROOT} が存在しません。Docker の volume 設定を確認してください。")
+if not DATA_ROOT.exists() or not DATA_ROOT.is_dir():
+    st.error(
+        f"入力ディレクトリ '{DATA_ROOT}' が存在しないか、ディレクトリではありません。\n"
+        "Docker を使用している場合は volume の設定を、"
+        "直接実行している場合は環境変数 `INPUT_DIR` を確認してください。"
+    )
     st.stop()
 
 # 直下の CSV をざっと確認してユーザーに見せる（任意）
 csv_files = sorted(list(DATA_ROOT.glob("*.csv")) + list(DATA_ROOT.glob("*.CSV")))
-st.write(f"現在 `/app/data` 直下にある CSV ファイル数: **{len(csv_files)} 件**")
+st.write(f"現在 `{DATA_ROOT}` 直下にある CSV ファイル数: **{len(csv_files)} 件**")
 if csv_files:
     with st.expander("ファイル一覧を表示"):
         for f in csv_files:
             st.write(f"- {f.name}")
 else:
-    st.warning("`/app/data` 直下に CSV ファイルが見つかりません。")
+    st.warning(f"`{DATA_ROOT}` 直下に CSV ファイルが見つかりません。")
     st.stop()
 
 # 出力ファイル名を入力

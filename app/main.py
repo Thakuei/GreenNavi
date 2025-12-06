@@ -31,6 +31,11 @@ compare_both = settings["compare_both"]
 
 if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
+    
+    if "TIME" in df.columns:
+        df["TIME"] = pd.to_datetime(df["TIME"], errors="coerce")
+        df = df.dropna(subset=["TIME"]).reset_index(drop=True)
+
     st.success("CSVファイルを読み込みました。ファイル名: {}".format(uploaded_file.name))
 
     st.subheader("現在の設定値")
