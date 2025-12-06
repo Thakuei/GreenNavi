@@ -31,7 +31,7 @@ compare_both = settings["compare_both"]
 
 if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
-    
+
     if "TIME" in df.columns:
         df["TIME"] = pd.to_datetime(df["TIME"], errors="coerce")
         df = df.dropna(subset=["TIME"]).reset_index(drop=True)
