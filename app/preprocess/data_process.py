@@ -226,10 +226,25 @@ def transform_to_simulation_df(
     df["pv_surplus_kwh"] = (df["pv_net_pos_kwh"] - df["load_site_kwh"]).clip(lower=0)
     df["load_deficit_kwh"] = (df["load_site_kwh"] - df["pv_net_pos_kwh"]).clip(lower=0)
 
+    pv_scale = 6.7 / 1.7
+    battery_scale = 14.6 / 7.4
+
+    # PV のスケーリング
+    df["pv_net_pos_kwh"] *= pv_scale
+    df["pv_aux_kwh"] *= pv_scale
+
+    # スケーリング後に余剰 / 不足を再計算
+    gap = df["pv_net_pos_kwh"] - df["load_site_kwh"]
+    df["pv_surplus_kwh"] = gap.clip(lower=0)
+    df["load_deficit_kwh"] = (-gap).clip(lower=0)
+
     # 整合チェック（余剰と不足が同時に >0 になる行がないこと）
     assert (
         (df["pv_surplus_kwh"] > 0) & (df["load_deficit_kwh"] > 0)
     ).sum() == 0, "pv_surplus_kwh と load_deficit_kwh が同時に正の行があります"
+
+    if not df.empty and pd.notna(df.loc[0, "batt_soc_kwh"]):
+        df.loc[0, "batt_soc_kwh"] *= battery_scale
 
     # カラム並び替え
     df = df[
@@ -243,5 +258,17 @@ def transform_to_simulation_df(
             "batt_soc_kwh",
         ]
     ].copy()
+
+    # すべて NaN の行を削除
+    df = df.dropna(
+        subset=[
+            "load_site_kwh",
+            "pv_net_pos_kwh",
+            "pv_aux_kwh",
+            "pv_surplus_kwh",
+            "load_deficit_kwh",
+        ],
+        how="all",
+    )
 
     return df
