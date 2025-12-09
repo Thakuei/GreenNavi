@@ -83,11 +83,6 @@ if uploaded_file is not None:
                 "自家消費率 (%)": [
                     household_consumption / sum(df_["pv_net_pos_kwh"]) * 100
                 ],
-                "自給率 (%)": [
-                    household_consumption
-                    / (household_consumption + total_buy_electricity)
-                    * 100
-                ],
                 "二酸化炭素排出量(kg-CO2)": [carbon_dioxide_emissions],  # kg-CO2
             }
 
