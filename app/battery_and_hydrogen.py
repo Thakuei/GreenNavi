@@ -19,12 +19,16 @@ class SimulationParams:
     fc_efficiency: float
     production_month: Sequence[int]
     consumption_month: Sequence[int]
+    ev_capacity_kwh: float
+    ev_charge_power_kwh: float
+    ev_trip_energy_kwh: float
 
 
 def _cost_and_battery_capacity(
     row: pd.Series,
     battery_capacity: float,
     h2_storage_kwh: float,
+    ev_soc_kwh: float,
     params: SimulationParams,
 ):
     load = row["load_site_kwh"]
@@ -38,6 +42,8 @@ def _cost_and_battery_capacity(
     buy_electricity = 0.0
     sell_electricity = 0.0
     remain_surplus = 0.0
+    ev_charge_used_kwh = 0.0
+    ev_trip_count_this_hour = 0
 
     if pv >= load:
         surplus = pv - load
@@ -79,6 +85,7 @@ def _cost_and_battery_capacity(
     h2_energy_kwh = 0.0
     el_input_used_kwh = 0.0
     fc_output_used_kwh = 0.0
+    surplus_after_h2 = 0.0
     buy_before_h2 = buy_electricity
 
     if month in params.production_month:
@@ -95,9 +102,24 @@ def _cost_and_battery_capacity(
                 h2_storage_kwh = min(
                     h2_storage_kwh + h2_energy_kwh, params.h2_storage_capacity_kwh
                 )
-                sell_electricity = max(remain_surplus - el_input_used_kwh, 0.0)
+                surplus_after_h2 = max(remain_surplus - el_input_used_kwh, 0.0)
             else:
-                sell_electricity = remain_surplus
+                surplus_after_h2 = remain_surplus
+        else:
+            surplus_after_h2 = 0.0
+
+        if surplus_after_h2 > 0:
+            ev_space = params.ev_capacity_kwh - ev_soc_kwh
+            ev_space = max(ev_space, 0.0)
+            
+            if ev_space > 0:
+                ev_charge_used_kwh = min(
+                    surplus_after_h2, ev_space, params.ev_charge_power_kwh
+                )
+                ev_soc_kwh += ev_charge_used_kwh
+                surplus_after_h2 -= ev_charge_used_kwh
+
+        sell_electricity = surplus_after_h2
 
     elif month in params.consumption_month:
         if remain_surplus > 0:
@@ -112,6 +134,10 @@ def _cost_and_battery_capacity(
                 h2_consumed_kwh = fc_output_used_kwh / params.fc_efficiency
                 h2_storage_kwh = max(h2_storage_kwh - h2_consumed_kwh, 0.0)
                 buy_electricity -= fc_output_used_kwh
+                
+    while ev_soc_kwh >= params.ev_trip_energy_kwh:
+        ev_soc_kwh -= params.ev_trip_energy_kwh
+        ev_trip_count_this_hour += 1
 
     cost = buy_electricity * params.buy_price - sell_electricity * params.sell_price
 
@@ -128,6 +154,9 @@ def _cost_and_battery_capacity(
         el_input_used_kwh,
         fc_output_used_kwh,
         buy_before_h2,
+        ev_soc_kwh,
+        ev_charge_used_kwh,
+        ev_trip_count_this_hour,
     )
 
 
@@ -152,6 +181,9 @@ def run_battery_and_hydrogen_simulation(
         fc_efficiency=settings["fc_efficiency"],
         production_month=settings["production_month"],
         consumption_month=settings["consumption_month"],
+        ev_capacity_kwh=settings["ev_capacity_kwh"],
+        ev_charge_power_kwh=settings["ev_charge_power_kwh"],
+        ev_trip_energy_kwh=settings["ev_trip_energy_kwh"],
     )
 
     df_result = df.copy()
@@ -161,6 +193,8 @@ def run_battery_and_hydrogen_simulation(
         df_result.iloc[0].get("batt_soc_kwh", params.max_battery_capacity)
     )
     h2_storage_kwh_initial_value = 0.0
+    ev_soc_kwh_initial_value = 0.0
+    total_ev_trips_initial_value = 0
 
     cost_list = []
     battery_capacity_list = []
@@ -174,9 +208,15 @@ def run_battery_and_hydrogen_simulation(
     el_input_used_kwh_list = []
     fc_output_used_kwh_list = []
     buy_before_h2_list = []
+    ev_soc_kwh_list = []
+    ev_charge_used_kwh_list = []
+    ev_trip_count_hour_list = []
+    ev_trip_count_total_list = []
 
     current_battery_capacity = battery_capacity_initial_value
     current_h2_storage_kwh = h2_storage_kwh_initial_value
+    current_ev_soc_kwh = ev_soc_kwh_initial_value
+    current_total_ev_trips = total_ev_trips_initial_value
 
     for index, row in df_result.iterrows():
         if index == 0:
@@ -192,6 +232,10 @@ def run_battery_and_hydrogen_simulation(
             el_input_used_kwh_list.append(0.0)
             fc_output_used_kwh_list.append(0.0)
             buy_before_h2_list.append(0.0)
+            ev_soc_kwh_list.append(current_ev_soc_kwh)
+            ev_charge_used_kwh_list.append(0.0)
+            ev_trip_count_hour_list.append(0)
+            ev_trip_count_total_list.append(current_total_ev_trips)
         else:
             (
                 cost_for_hour,
@@ -206,8 +250,11 @@ def run_battery_and_hydrogen_simulation(
                 el_input_used_kwh,
                 fc_output_used_kwh,
                 buy_before_h2,
+                next_ev_soc_kwh,
+                ev_charge_used_kwh,
+                ev_trip_count_this_hour,
             ) = _cost_and_battery_capacity(
-                row, current_battery_capacity, current_h2_storage_kwh, params
+                row, current_battery_capacity, current_h2_storage_kwh, current_ev_soc_kwh, params
             )
 
             cost_list.append(cost_for_hour)
@@ -222,9 +269,17 @@ def run_battery_and_hydrogen_simulation(
             el_input_used_kwh_list.append(el_input_used_kwh)
             fc_output_used_kwh_list.append(fc_output_used_kwh)
             buy_before_h2_list.append(buy_before_h2)
+            
+            ev_soc_kwh_list.append(next_ev_soc_kwh)
+            ev_charge_used_kwh_list.append(ev_charge_used_kwh)
+            ev_trip_count_hour_list.append(ev_trip_count_this_hour)
 
             current_battery_capacity = end_of_hour_battery_capacity
             current_h2_storage_kwh = next_h2_storage_kwh
+            current_ev_soc_kwh = next_ev_soc_kwh
+
+            current_total_ev_trips += ev_trip_count_this_hour
+            ev_trip_count_total_list.append(current_total_ev_trips)
 
     df_result.loc[:, "cost"] = cost_list
     df_result.loc[:, "batt_soc_kwh"] = battery_capacity_list
@@ -238,5 +293,9 @@ def run_battery_and_hydrogen_simulation(
     df_result.loc[:, "el_input_used_kwh"] = el_input_used_kwh_list
     df_result.loc[:, "fc_output_used_kwh"] = fc_output_used_kwh_list
     df_result.loc[:, "buy_before_h2"] = buy_before_h2_list
+    df_result.loc[:, "ev_soc_kwh"] = ev_soc_kwh_list
+    df_result.loc[:, "ev_charge_used_kwh"] = ev_charge_used_kwh_list
+    df_result.loc[:, "ev_trip_count_hour"] = ev_trip_count_hour_list
+    df_result.loc[:, "ev_trip_total"] = ev_trip_count_total_list
 
     return df_result
