@@ -86,11 +86,11 @@ if uploaded_file is not None:
                 "二酸化炭素排出量(kg-CO2)": [carbon_dioxide_emissions],  # kg-CO2
             }
 
-            # if battery_only_simulation is not None:
-            #     reduction_rate = (total_buy_electricity / battery_only_simulation) * 100
-            #     result["削減率 (%)"] = [reduction_rate]
-            # else:
-            #     result["削減率 (%)"] = ["--"]
+            if battery_only_simulation is not None:
+                reduction_rate = (total_buy_electricity / battery_only_simulation) * 100
+                result["削減率 (%)"] = [reduction_rate]
+            else:
+                result["削減率 (%)"] = ["--"]
 
             return pd.DataFrame.from_dict(
                 result,
