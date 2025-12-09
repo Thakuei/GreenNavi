@@ -65,6 +65,17 @@ def render_sidebar():
         consumption_month = st.sidebar.multiselect(
             "消費月", options=months, default=[1, 2, 3, 12]
         )
+        st.sidebar.header("EV設定")
+        ev_capacity_kwh = st.sidebar.number_input(
+            "EV バッテリ容量 (kWh)", value=40.0, min_value=0.0, step=1.0
+        )
+        ev_charge_power_kwh = st.sidebar.number_input(
+            "EV 充電出力 (kW)", value=3.0, min_value=0.0, step=0.5
+        )
+        ev_trip_energy_kwh = st.sidebar.number_input(
+            "EV 1回あたりの走行エネルギー消費量 (kWh)", value=6.0, min_value=0.0, step=0.5
+        )
+
     else:
         el_rated_power_kwh = None
         el_efficiency = None
@@ -73,6 +84,9 @@ def render_sidebar():
         fc_efficiency = None
         production_month = None
         consumption_month = None
+        ev_capacity_kwh = None
+        ev_charge_power_kwh = None
+        ev_trip_energy_kwh = None
 
     compare_both = st.sidebar.checkbox(
         "同時比較",
@@ -103,6 +117,10 @@ def render_sidebar():
         "production_month": production_month,
         "consumption_month": consumption_month,
         "run_simulation_clicked": run_simulation_clicked,
+        # EV設定
+        "ev_capacity_kwh": ev_capacity_kwh,
+        "ev_charge_power_kwh": ev_charge_power_kwh,
+        "ev_trip_energy_kwh": ev_trip_energy_kwh,
         # 同時比較
         "compare_both": compare_both,
     }

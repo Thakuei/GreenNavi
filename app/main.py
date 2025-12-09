@@ -53,6 +53,9 @@ if uploaded_file is not None:
                 "燃料電池効率": settings["fc_efficiency"],
                 "発電月": settings["production_month"],
                 "消費月": settings["consumption_month"],
+                "EVバッテリ容量": settings["ev_capacity_kwh"],
+                "EV充電出力": settings["ev_charge_power_kwh"],
+                "EV1回あたりの走行エネルギー消費量": settings["ev_trip_energy_kwh"],
             },
             orient="index",
             columns=["値"],
@@ -90,6 +93,19 @@ if uploaded_file is not None:
                 ],
                 "二酸化炭素排出量(kg-CO2)": [carbon_dioxide_emissions],  # kg-CO2
             }
+
+            if "ev_charge_used_kwh" in df_.columns:
+                total_ev_charge = df_["ev_charge_used_kwh"].sum()
+                
+                if "ev_trip_total" in df_.columns:
+                    total_ev_trip = df_["ev_trip_total"].iloc[-1]
+                elif "ev_trip_this_hour" in df_.columns:
+                    total_ev_trip = df_["ev_trip_this_hour"].sum()
+                else:
+                    total_ev_trip = 0
+
+                result["総EV充電量 (kWh)"] = [total_ev_charge]
+                result["総EV走行回数"] = [total_ev_trip]
 
             if battery_only_simulation is not None:
                 reduction_rate = (total_buy_electricity / battery_only_simulation) * 100
