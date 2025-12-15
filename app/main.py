@@ -88,9 +88,13 @@ if uploaded_file is not None:
 
             if battery_only_simulation is not None:
                 reduction_rate = (total_buy_electricity / battery_only_simulation) * 100
-                result["削減率 (%)"] = [reduction_rate]
+                result["削減率 (%) (削減率=水素導入時の買電量/蓄電池単体の買電量)"] = [
+                    reduction_rate
+                ]
             else:
-                result["削減率 (%)"] = ["--"]
+                result["削減率 (%) (削減率=水素導入時の買電量/蓄電池単体の買電量)"] = [
+                    "--"
+                ]
 
             return pd.DataFrame.from_dict(
                 result,
