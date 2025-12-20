@@ -83,7 +83,7 @@ if uploaded_file is not None:
             total_sell_electricity = df_["sell_electricity"].sum()
             carbon_dioxide_emissions = total_buy_electricity * 0.431  # kg-CO2/kWh
             result = {
-                "総コスト (円)": [total_cost],
+                "エネルギーコスト (円)": [total_cost],
                 "総買電量 (kWh)": [total_buy_electricity],
                 "総売電量 (kWh)": [total_sell_electricity],
                 "自家消費率 (%)": [
