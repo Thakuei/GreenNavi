@@ -26,6 +26,7 @@ class SimulationParams:
     ev_max_trips_per_day: int
     ev_trip_energy_kwh: float
 
+
 def _cost_and_battery_capacity(
     row: pd.Series,
     battery_capacity: float,
@@ -87,7 +88,7 @@ def _cost_and_battery_capacity(
     el_input_used_kwh = 0.0
     fc_output_used_kwh = 0.0
     buy_before_h2 = buy_electricity
-    
+
     ev_charge_used_kwh = 0.0
     ev_trip_count_this_hour = 0
 
@@ -111,13 +112,15 @@ def _cost_and_battery_capacity(
                 surplus_after_h2 = remain_surplus
         else:
             surplus_after_h2 = 0.0
-        
+
         if surplus_after_h2 > 0:
             ev_space = max(params.ev_capacity_kwh - ev_soc_kwh, 0.0)
             if ev_space > 0:
-              ev_charge_used_kwh = min(surplus_after_h2, params.ev_charge_power_kwh, ev_space)
-              ev_soc_kwh += ev_charge_used_kwh
-              surplus_after_h2 -= ev_charge_used_kwh
+                ev_charge_used_kwh = min(
+                    surplus_after_h2, params.ev_charge_power_kwh, ev_space
+                )
+                ev_soc_kwh += ev_charge_used_kwh
+                surplus_after_h2 -= ev_charge_used_kwh
 
         sell_electricity = max(surplus_after_h2, 0.0)
 
@@ -136,10 +139,13 @@ def _cost_and_battery_capacity(
                 buy_electricity -= fc_output_used_kwh
 
     if params.ev_max_trips_per_day > 0 and params.ev_trip_energy_kwh > 0:
-      if ev_trips_today < params.ev_max_trips_per_day and ev_soc_kwh >= params.ev_trip_energy_kwh:
-        ev_soc_kwh -= params.ev_trip_energy_kwh
-        ev_trips_today += 1
-        ev_trip_count_this_hour = 1
+        if (
+            ev_trips_today < params.ev_max_trips_per_day
+            and ev_soc_kwh >= params.ev_trip_energy_kwh
+        ):
+            ev_soc_kwh -= params.ev_trip_energy_kwh
+            ev_trips_today += 1
+            ev_trip_count_this_hour = 1
 
     cost = buy_electricity * params.buy_price - sell_electricity * params.sell_price
 
@@ -171,7 +177,7 @@ def run_battery_and_hydrogen_ev_simulation(
     """
     if df.empty:
         return df.copy()
-      
+
     ev_trip_energy_kwh = (
         float(settings["ev_daily_distance_km"])
         / float(settings["ev_eff_km_per_kwh"])
@@ -221,14 +227,14 @@ def run_battery_and_hydrogen_ev_simulation(
     ev_soc_kwh_list = []
     ev_charge_used_kwh_list = []
     ev_trip_count_list = []
-    ev_trips_today_list = [] 
+    ev_trips_today_list = []
 
     current_battery_capacity = battery_capacity_initial_value
     current_h2_storage_kwh = h2_storage_kwh_initial_value
     ev_soc_kwh_initial_value = 0.0
     current_ev_soc_kwh = ev_soc_kwh_initial_value
     current_ev_trips_today = 0
-    
+
     current_day = None
 
     for index, row in df_result.iterrows():
@@ -338,4 +344,3 @@ def run_battery_and_hydrogen_ev_simulation(
     df_result.loc[:, "ev_trip_energy_kwh"] = params.ev_trip_energy_kwh
 
     return df_result
-  
