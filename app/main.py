@@ -195,7 +195,6 @@ if uploaded_file is not None:
                         plot_sell_electricity(result_df_ev)
                         plot_buy_electricity(result_df_ev)
                         plot_h2_storage_kwh(result_df_ev)
-                        plot_repair_the_cottage(result_df_ev)
 
                     result_df = None
 

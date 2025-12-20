@@ -75,31 +75,6 @@ def render_sidebar():
         consumption_month = None
 
     # EV関連項目（モードが「蓄電池 + 水素 + EV」の場合に表示）
-    # if mode == "蓄電池 + 水素 + EV":
-    #     st.sidebar.header("EV設定")
-    #     ev_capacity_kwh = st.sidebar.number_input(
-    #         "EV バッテリ容量 (kWh)", value=40.0, min_value=1.0, step=1.0
-    #     )
-    #     ev_charge_power_kwh = st.sidebar.number_input(
-    #         "EV 充電出力 (kW)", value=3.0, min_value=0.5, step=0.5
-    #     )
-    #     ev_eff_km_per_kwh = st.sidebar.number_input(
-    #         "電費 (km/kWh)", value=6.0, min_value=0.1, step=0.1
-    #     )
-    #     ev_daily_distance_km = st.sidebar.number_input(
-    #         "走行予定総距離 (km/日)", value=60.0, min_value=0.0, step=5.0
-    #     )
-    #     ev_max_trips_per_day = st.sidebar.number_input(
-    #         "往復回数 (回/日)", value=1, min_value=1, step=1
-    #     )
-    # else:
-    #     ev_capacity_kwh = None
-    #     ev_charge_power_kwh = None
-    #     ev_eff_km_per_kwh = None
-    #     ev_daily_distance_km = None
-    #     ev_max_trips_per_day = None
-
-    # EV関連項目（モードが「蓄電池 + 水素 + EV」の場合に表示）
     if mode == "蓄電池 + 水素 + EV":
         st.sidebar.header("EV設定")
         ev_capacity_kwh = st.sidebar.number_input(
