@@ -11,7 +11,7 @@ def render_sidebar():
 
     mode = st.sidebar.segmented_control(
         "モード選択",
-        options=["蓄電池", "蓄電池 + 水素"],
+        options=["蓄電池", "蓄電池 + 水素", "蓄電池 + 水素 + EV"],
         default="蓄電池 + 水素",
         width="stretch",
     )
@@ -40,8 +40,8 @@ def render_sidebar():
         "蓄電池 定格出力 (kW)", value=3.0, min_value=0.0, step=0.5
     )
 
-    # 水素関連項目（モードが「蓄電池 + 水素」の場合のみ表示）
-    if mode == "蓄電池 + 水素":
+    # 水素関連項目（モードが「蓄電池 + 水素」「蓄電池 + 水素 + EV」の場合に表示）
+    if mode in ("蓄電池 + 水素", "蓄電池 + 水素 + EV"):
         el_rated_power_kwh = st.sidebar.number_input(
             "水電解装置 定格出力 (kW)", value=3.0, min_value=0.0, step=0.5
         )
@@ -74,12 +74,37 @@ def render_sidebar():
         production_month = None
         consumption_month = None
 
+    # EV関連項目（モードが「蓄電池 + 水素 + EV」の場合に表示）
+    if mode == "蓄電池 + 水素 + EV":
+        st.sidebar.header("EV設定")
+        ev_capacity_kwh = st.sidebar.number_input(
+            "EV バッテリ容量 (kWh)", value=40.0, min_value=1.0, step=1.0
+        )
+        ev_charge_power_kwh = st.sidebar.number_input(
+            "EV 充電出力 (kW)", value=3.0, min_value=0.5, step=0.5
+        )
+        ev_eff_km_per_kwh = st.sidebar.number_input(
+            "電費 (km/kWh)", value=6.0, min_value=0.1, step=0.1
+        )
+        ev_daily_distance_km = st.sidebar.number_input(
+            "走行予定総距離 (km/日)", value=60.0, min_value=0.0, step=5.0
+        )
+        ev_max_trips_per_day = st.sidebar.number_input(
+            "往復回数 (回/日)", value=1, min_value=1, step=1
+        )
+    else:
+        ev_capacity_kwh = None
+        ev_charge_power_kwh = None
+        ev_eff_km_per_kwh = None
+        ev_daily_distance_km = None
+        ev_max_trips_per_day = None
+
     compare_both = st.sidebar.checkbox(
         "同時比較",
         key="compare_both",
         value=st.session_state.get("compare_both", False),
         disabled=is_battery_only,
-        help="蓄電池 + 水素モード時のみ有効です",
+        help="蓄電池 + 水素系モード時のみ有効です",
     )
 
     run_simulation_clicked = st.sidebar.button(
@@ -102,7 +127,13 @@ def render_sidebar():
         "fc_efficiency": fc_efficiency,
         "production_month": production_month,
         "consumption_month": consumption_month,
+        # EV関連項目
+        "ev_capacity_kwh": ev_capacity_kwh,
+        "ev_charge_power_kwh": ev_charge_power_kwh,
+        "ev_eff_km_per_kwh": ev_eff_km_per_kwh,
         "run_simulation_clicked": run_simulation_clicked,
+        "ev_daily_distance_km": ev_daily_distance_km,
+        "ev_max_trips_per_day": ev_max_trips_per_day,
         # 同時比較
         "compare_both": compare_both,
     }
